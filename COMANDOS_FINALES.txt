@@ -1,0 +1,46 @@
+════════════════════════════════════════════════════════════════
+EJECUTA ESTOS 3 COMANDOS - COPIAR Y PEGAR
+════════════════════════════════════════════════════════════════
+
+YA HICE POR TI:
+✅ git init
+✅ git add .
+✅ git commit
+
+SOLO FALTAN ESTOS 3 COMANDOS:
+
+────────────────────────────────────────────────────────────────
+COMANDO 1: Conectar con GitHub
+────────────────────────────────────────────────────────────────
+
+git remote add origin https://github.com/jorgerueda777/trading-bot-monitor.git
+
+────────────────────────────────────────────────────────────────
+COMANDO 2: Configurar rama principal
+────────────────────────────────────────────────────────────────
+
+git branch -M main
+
+────────────────────────────────────────────────────────────────
+COMANDO 3: Subir código
+────────────────────────────────────────────────────────────────
+
+git push -u origin main
+
+NOTA: Te pedirá credenciales:
+- Usuario: jorgerueda777
+- Password: Tu Personal Access Token
+  (Obtener en: https://github.com/settings/tokens)
+
+════════════════════════════════════════════════════════════════
+RESUMEN:
+════════════════════════════════════════════════════════════════
+
+1. Abre PowerShell
+2. Copia y pega COMANDO 1 → Enter
+3. Copia y pega COMANDO 2 → Enter
+4. Copia y pega COMANDO 3 → Enter (pedirá credenciales)
+
+LISTO. Código en GitHub.
+
+Después sigue: DEPLOY_RENDER_FACIL.md

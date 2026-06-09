@@ -8,6 +8,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from telethon import TelegramClient, events
 from telethon.tl.types import Channel, Chat
+from aiohttp import web
 
 from src.core.classifier import EventClassifier
 from src.storage.historical_storage import HistoricalStorage
