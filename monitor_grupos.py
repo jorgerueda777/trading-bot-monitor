@@ -258,12 +258,33 @@ async def main():
         print("❌ ERROR: No hay grupos configurados en SOURCE_GROUP_IDS")
         return
     
-    # Crear cliente
-    client = TelegramClient('session_name', API_ID, API_HASH)
+    # Crear cliente con sesión de string si está en variable de entorno
+    session_string = os.getenv('TELEGRAM_SESSION_STRING')
+    
+    if session_string:
+        print("📱 Usando sesión de string...")
+        from telethon.sessions import StringSession
+        client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
+    else:
+        print("📱 Usando sesión de archivo...")
+        client = TelegramClient('session_name', API_ID, API_HASH)
     
     print("🔐 Conectando a Telegram...")
-    await client.start(phone=PHONE)
-    print("✅ Conectado!\n")
+    
+    # Intentar conectar sin input interactivo
+    try:
+        await client.connect()
+        if not await client.is_user_authorized():
+            print("❌ ERROR: Sesión no autorizada")
+            print("⚠️ Necesitas:")
+            print("   1. Ejecutar el bot localmente una vez")
+            print("   2. Generar session string con: python -c 'from telethon.sessions import StringSession; print(StringSession.save(client.session))'")
+            print("   3. Agregar TELEGRAM_SESSION_STRING a variables de entorno en Render")
+            return
+        print("✅ Conectado!\n")
+    except Exception as e:
+        print(f"❌ Error conectando: {e}")
+        return
     
     # Obtener nombres de grupos
     print("📋 Grupos a monitorear:")
