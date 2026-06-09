@@ -54,8 +54,10 @@ async def start_server(port=10000):
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
     
-    print(f"🌐 Keep-alive server iniciado en puerto {port}")
+    print(f"✅ Keep-alive server ACTIVO en puerto {port}")
+    print(f"   Bind: 0.0.0.0:{port}")
     print(f"   Health check: http://0.0.0.0:{port}/health")
+    print(f"   Página web: http://0.0.0.0:{port}/")
     
     # Mantener el servidor corriendo
     while True:

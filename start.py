@@ -9,8 +9,12 @@ async def main():
     """Ejecuta bot y servidor en paralelo"""
     print("🚀 Iniciando Trading Bot con Keep-Alive...")
     
-    # Iniciar servidor keep-alive en segundo plano
+    # Iniciar servidor keep-alive PRIMERO (para que Render detecte el puerto)
+    print("🌐 Iniciando servidor web...")
     server_task = asyncio.create_task(start_server())
+    
+    # Esperar un poco para que el servidor se levante
+    await asyncio.sleep(2)
     
     # Iniciar bot (importar aquí para evitar conflictos)
     print("📱 Iniciando monitor de Telegram...")
