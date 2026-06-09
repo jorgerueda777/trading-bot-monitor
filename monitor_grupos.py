@@ -38,6 +38,11 @@ print(f"📋 Grupos configurados: {SOURCE_IDS}")
 # Canal destino
 DEST_CHANNEL_ID = int(os.getenv('DEST_CHANNEL_ID'))
 
+# Convertir a formato de canal si es necesario (Telegram usa -100 prefix para canales)
+# Si el ID es positivo y no empieza con -100, convertirlo
+if DEST_CHANNEL_ID > 0:
+    DEST_CHANNEL_ID = int(f"-100{DEST_CHANNEL_ID}")
+
 # Inicializar clasificador y clientes
 classifier = EventClassifier()
 storage = HistoricalStorage()
