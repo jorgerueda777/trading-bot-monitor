@@ -1,0 +1,35 @@
+# Configuración para Fly.io
+app = "trading-bot-monitor"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PYTHONUNBUFFERED = "1"
+
+[[services]]
+  internal_port = 8000
+  protocol = "tcp"
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+# Recursos para la VM gratuita
+[experimental]
+  auto_rollback = true
+
+[[mounts]]
+  source = "bot_data"
+  destination = "/app/data"
+
+# Health check (opcional)
+[checks]
+  [checks.alive]
+    type = "tcp"
+    interval = "30s"
+    timeout = "10s"

@@ -1,0 +1,36 @@
+MIS GRUPOS Y CANALES DE TELEGRAM
+======================================================================
+
+GRUPOS:
+----------------------------------------------------------------------
+
+Nombre: prueba
+ID: 5002799975
+Tipo: Grupo
+Miembros: 1
+
+Nombre: Analítica Trading VIP 🤖
+ID: 1959577386
+Tipo: Supergrupo
+Miembros: 36
+
+Nombre: 🔥 Señales PRIMIUM 🔥
+ID: 2398253860
+Tipo: Supergrupo
+Miembros: 36
+
+
+CANALES:
+----------------------------------------------------------------------
+
+Nombre: j77
+ID: 3415985578
+Tipo: Canal
+Suscriptores: 1
+
+Nombre: Analítica Trading 🤖
+ID: 1749520573
+Username: @analiticatrading
+Tipo: Canal
+Suscriptores: 821
+

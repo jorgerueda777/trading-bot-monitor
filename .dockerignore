@@ -1,0 +1,48 @@
+# .dockerignore - Archivos que NO se copian al contenedor
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Tests
+tests/
+test_*.py
+*_test.py
+pytest_cache/
+
+# Documentation (NO copiar al contenedor)
+*.md
+!README.md
+
+# Archivos locales que no deben ir al servidor
+.env.local
+session_name.session
+*.session-journal
+
+# Logs locales
+*.log
+
+# Caché
+.pytest_cache/
+.mypy_cache/

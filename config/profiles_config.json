@@ -1,0 +1,57 @@
+{
+  "evaluation_profiles": {
+    "FIBO_1H": {
+      "description": "Perfil para eventos de timeframe 1H - Mayor peso en métricas de corto plazo",
+      "weights": {
+        "open_interest": 25,
+        "cvd": 25,
+        "delta": 20,
+        "volume": 15,
+        "liquidity_sweeps": 10,
+        "funding": 3,
+        "vwap": 2
+      },
+      "validity_window_hours": 4,
+      "max_distance_percent": 2.0
+    },
+    "FIBO_4H": {
+      "description": "Perfil para eventos de timeframe 4H - Balance entre corto y medio plazo",
+      "weights": {
+        "open_interest": 25,
+        "cvd": 20,
+        "delta": 15,
+        "volume": 15,
+        "liquidity_sweeps": 15,
+        "funding": 5,
+        "vwap": 5
+      },
+      "validity_window_hours": 16,
+      "max_distance_percent": 5.0
+    },
+    "FIBO_1D": {
+      "description": "Perfil para eventos de timeframe 1D - Mayor peso en estructuras macro",
+      "weights": {
+        "open_interest": 20,
+        "cvd": 15,
+        "delta": 10,
+        "volume": 15,
+        "liquidity_sweeps": 25,
+        "funding": 10,
+        "vwap": 5
+      },
+      "validity_window_hours": 72,
+      "max_distance_percent": 10.0
+    }
+  },
+  "priority_thresholds": {
+    "ALTA_PRIORIDAD": 80,
+    "PRIORIDAD_MEDIA": 60,
+    "BAJA_PRIORIDAD": 0
+  },
+  "recalibration": {
+    "enabled": true,
+    "min_samples": 100,
+    "learning_rate": 0.05,
+    "max_weight_adjustment": 5
+  }
+}
