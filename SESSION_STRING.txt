@@ -1,0 +1,22 @@
+================================================================================
+SESSION STRING PARA RENDER (Variable de Entorno)
+================================================================================
+
+En Render, agrega esta variable de entorno:
+
+Key: TELEGRAM_SESSION_STRING
+
+Value: 1BJWap1wBu0Edq64hBPnn7WGc6f71izUuY0kSBrKkdhPpCXoipN3VTGMOdstCCvDu8stB5Kj1_38pZMtLAP9kQgDer21pjJZ0l_ssHmxUXIfJ9pSI_C7xbqwDzU7dms2nzO0WUrRS6uiDummhD_XjG7QpQCzaLkNWCBx2DJOtxeepMyTaxf0yfvVPcdy2EYSGM1GeGMiIvLHNbMkstbUvzWbYJ_6gWbExOMAROwNB5h4ntjJf6fomc0O_C6OS2cxZh-2995RorTBo9Atxhc-1ra1-tffQDvHo-d7BN40pRW82KYVRWD8dlebxqAugrbM2oPTmx_M46137zCsCDPIZWIl8SU79Ubs=
+
+================================================================================
+IMPORTANTE: Copia el string COMPLETO (una sola línea)
+================================================================================
+
+PASOS EN RENDER:
+1. Ve a tu servicio en Render.com
+2. Pestaña "Environment"
+3. Click "Add Environment Variable"
+4. Key: TELEGRAM_SESSION_STRING
+5. Value: [pega el string completo de arriba]
+6. Click "Save Changes"
+7. El servicio se redesplegará automáticamente

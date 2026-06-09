@@ -258,8 +258,17 @@ async def main():
         print("❌ ERROR: No hay grupos configurados en SOURCE_GROUP_IDS")
         return
     
-    # Crear cliente - siempre usar sesión de archivo
-    client = TelegramClient('session_name', API_ID, API_HASH)
+    # Crear cliente - usar StringSession si está disponible, sino archivo
+    from telethon.sessions import StringSession
+    
+    session_string = os.getenv('TELEGRAM_SESSION_STRING', '').strip()
+    
+    if session_string:
+        print("📱 Usando sesión de string...")
+        client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
+    else:
+        print("📁 Usando sesión de archivo (session_name.session)...")
+        client = TelegramClient('session_name', API_ID, API_HASH)
     
     print("🔐 Conectando a Telegram...")
     
@@ -270,8 +279,11 @@ async def main():
         # Si no está autorizado, fallar sin pedir código
         if not await client.is_user_authorized():
             print("❌ ERROR: Sesión no autorizada")
-            print("⚠️ El archivo session_name.session debe estar en el repositorio")
-            print("   y contener una sesión válida de Telegram")
+            if session_string:
+                print("⚠️ El TELEGRAM_SESSION_STRING no es válido")
+            else:
+                print("⚠️ El archivo session_name.session debe estar en el repositorio")
+                print("   y contener una sesión válida de Telegram")
             await client.disconnect()
             return
         
