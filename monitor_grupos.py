@@ -362,6 +362,9 @@ async def main():
     print("   🎯 Umbral unificado: 75 para ALTA PRIORIDAD")
     print("   📊 Nueva escala: RUIDO<50, INTERESANTE 50-59, FUERTE 60-74, ALTA≥75\n")
     
+    print(f"📋 Registrando handler para grupos: {SOURCE_IDS}")
+    print(f"   Grupo IDs a monitorear: {', '.join(str(id) for id in SOURCE_IDS)}\n")
+    
     # Agregar heartbeat task para verificar conexión
     async def heartbeat():
         """Verifica periódicamente que la conexión esté activa"""
@@ -412,7 +415,7 @@ async def main():
         """Procesa mensajes de los grupos monitoreados"""
         global last_message_time
         last_message_time = datetime.now()
-        print(f"🔔 [HANDLER] Mensaje recibido - {datetime.now().strftime('%H:%M:%S')}")
+        print(f"🔔 [HANDLER] Mensaje recibido - {datetime.now().strftime('%H:%M:%S')} - Chat ID: {event.chat_id}")
         try:
             mensaje = event.message.message
             grupo_id = event.chat_id
@@ -615,6 +618,10 @@ async def main():
             print(f"❌ Error procesando mensaje: {e}")
             import traceback
             traceback.print_exc()
+    
+    print("✅ Handler registrado correctamente")
+    print(f"👂 Escuchando mensajes de {len(SOURCE_IDS)} grupos...")
+    print("⏳ Esperando eventos de Telegram...\n")
     
     # Mantener corriendo con reconexión automática
     print("💡 Bot en ejecución continua (reconexión automática activa)\n")
