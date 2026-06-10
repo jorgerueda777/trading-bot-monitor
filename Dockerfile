@@ -20,8 +20,8 @@ COPY . .
 # Crear directorio para datos persistentes
 RUN mkdir -p /app/data/classifications
 
-# Exponer puerto (por si acaso, aunque no es necesario para este bot)
-EXPOSE 8000
+# Exponer puerto 10000 para el servidor HTTP
+EXPOSE 10000
 
-# Comando para ejecutar el bot
-CMD ["python", "-u", "monitor_grupos.py"]
+# Comando para ejecutar el bot CON servidor HTTP
+CMD ["python", "-u", "start.py"]
