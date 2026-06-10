@@ -213,8 +213,14 @@ class EventTracker:
             return evento
         
         try:
-            # Obtener datos actualizados de mercado
-            market_data = self.binance_client.get_market_data(evento.symbol)
+            # Obtener datos actualizados de mercado (ejecutar en thread pool para no bloquear)
+            import asyncio
+            loop = asyncio.get_event_loop()
+            market_data = await loop.run_in_executor(
+                None, 
+                self.binance_client.get_market_data, 
+                evento.symbol
+            )
             
             # Re-clasificar el evento con datos actuales
             classification = self.classifier.classify_event(

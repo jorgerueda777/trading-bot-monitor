@@ -109,6 +109,12 @@ def obtener_market_data(symbol: str):
         return binance_client._get_fallback_data()
 
 
+async def obtener_market_data_async(symbol: str):
+    """Versión async que no bloquea el event loop"""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, obtener_market_data, symbol)
+
+
 def formatear_resumen_telegram(classification, grupo_origen, status=EventStatus.EN_ANALISIS, resumen_tracking=None) -> str:
     """Formatea resumen COMPACTO para Telegram - Solo info esencial"""
     
@@ -233,8 +239,13 @@ async def tracking_callback(evento_tracked):
         print(f"⚠️ No se encontró mensaje original para evento {evento_tracked.event_id}")
         return
     
-    # Re-clasificar con datos finales
-    market_data = binance_client.get_market_data(evento_tracked.symbol)
+    # Re-clasificar con datos finales (sin bloquear event loop)
+    loop = asyncio.get_event_loop()
+    market_data = await loop.run_in_executor(
+        None,
+        binance_client.get_market_data,
+        evento_tracked.symbol
+    )
     classification = classifier.classify_event(
         evento_tracked.original_message,
         market_data,
@@ -444,8 +455,8 @@ async def main():
                 elif bias in ["BAJISTA", "SHORT"]:
                     bias = "BEARISH"
                 
-                # Obtener datos de mercado REALES
-                market_data = obtener_market_data(symbol)
+                # Obtener datos de mercado REALES (sin bloquear event loop)
+                market_data = await obtener_market_data_async(symbol)
                 
                 # Clasificar
                 print("⚙️ Clasificando evento...")
