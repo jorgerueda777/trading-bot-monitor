@@ -1,53 +1,79 @@
 """
-Script de inicio - Servidor HTTP primero, bot después
+Script de inicio - Servidor HTTP PRIMERO, luego bot
 """
-import asyncio
-import sys
 import os
+import asyncio
 from aiohttp import web
 
-# Puerto para Render
 PORT = int(os.environ.get('PORT', 10000))
 
+# Flag para indicar que el servidor está listo
+server_ready = False
+
 async def health(request):
-    return web.json_response({'status': 'ok'})
+    return web.json_response({'status': 'ok', 'server': 'ready'})
 
 async def index(request):
-    return web.Response(text='Bot Running', content_type='text/html')
+    return web.Response(text='<h1>Bot Running</h1>', content_type='text/html')
 
-async def start_server():
-    """Inicia servidor HTTP INMEDIATAMENTE"""
+async def run_web_server():
+    """Servidor HTTP - Se levanta PRIMERO"""
+    global server_ready
+    
     app = web.Application()
     app.router.add_get('/', index)
     app.router.add_get('/health', health)
     
     runner = web.AppRunner(app)
     await runner.setup()
+    
     site = web.TCPSite(runner, '0.0.0.0', PORT)
     await site.start()
     
-    print(f"✅ HTTP SERVER RUNNING ON PORT {PORT}")
+    server_ready = True
+    print(f"✅✅✅ HTTP SERVER IS RUNNING ON PORT {PORT} ✅✅✅")
+    print(f"Server bound to 0.0.0.0:{PORT}")
     
-    # Mantener vivo
+    # Mantener corriendo forever
     while True:
         await asyncio.sleep(3600)
 
-async def start_bot():
-    """Inicia bot después de 5 segundos"""
-    await asyncio.sleep(5)
+async def run_telegram_bot():
+    """Bot de Telegram - Se inicia DESPUÉS del servidor"""
+    global server_ready
+    
+    # Esperar a que el servidor esté 100% listo
+    while not server_ready:
+        await asyncio.sleep(0.1)
+    
+    # Esperar 3 segundos extra por seguridad
+    print("⏳ Waiting 3 seconds before starting Telegram bot...")
+    await asyncio.sleep(3)
+    
     print("📱 Starting Telegram bot...")
+    
+    # Importar SOLO cuando el servidor ya está corriendo
     import monitor_grupos
+    
+    # Ejecutar el bot
     await monitor_grupos.main()
 
 async def main():
-    """Corre ambos en paralelo"""
-    print(f"🚀 Starting on port {PORT}...")
+    print(f"🚀 STARTING SERVICE ON PORT {PORT}")
     
-    # Servidor primero, bot después
-    await asyncio.gather(
-        start_server(),
-        start_bot()
-    )
+    # Crear ambas tareas
+    server = asyncio.create_task(run_web_server())
+    bot = asyncio.create_task(run_telegram_bot())
+    
+    # Ejecutar en paralelo
+    await asyncio.gather(server, bot)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n👋 Stopped")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
