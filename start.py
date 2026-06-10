@@ -34,6 +34,27 @@ async def run_web_server():
     print(f"✅✅✅ HTTP SERVER IS RUNNING ON PORT {PORT} ✅✅✅")
     print(f"Server bound to 0.0.0.0:{PORT}")
     
+    # Auto-ping cada 30 segundos para evitar sleep de Render
+    async def auto_ping():
+        """Hace ping al servidor cada 30 segundos para evitar sleep"""
+        import aiohttp
+        await asyncio.sleep(30)  # Esperar 30 segundos antes del primer ping
+        
+        while True:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f'http://localhost:{PORT}/health', timeout=10) as resp:
+                        if resp.status == 200:
+                            print("🔄 Auto-ping OK")
+            except:
+                pass  # Silenciar errores del ping
+            
+            await asyncio.sleep(30)  # Cada 30 segundos
+    
+    # Iniciar auto-ping
+    asyncio.create_task(auto_ping())
+    print("🔄 Auto-ping activado (cada 30 segundos)\n")
+    
     # Mantener corriendo forever
     while True:
         await asyncio.sleep(3600)
