@@ -278,12 +278,29 @@ async def main():
     
     session_string = os.getenv('TELEGRAM_SESSION_STRING', '').strip()
     
+    # Configurar cliente con opciones de keep-alive
     if session_string:
         print("📱 Usando sesión de string...")
-        client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
+        client = TelegramClient(
+            StringSession(session_string), 
+            API_ID, 
+            API_HASH,
+            connection_retries=5,
+            retry_delay=3,
+            auto_reconnect=True,
+            timeout=60
+        )
     else:
         print("📁 Usando sesión de archivo (session_name.session)...")
-        client = TelegramClient('session_name', API_ID, API_HASH)
+        client = TelegramClient(
+            'session_name', 
+            API_ID, 
+            API_HASH,
+            connection_retries=5,
+            retry_delay=3,
+            auto_reconnect=True,
+            timeout=60
+        )
     
     print("🔐 Conectando a Telegram...")
     
@@ -331,6 +348,30 @@ async def main():
     print("   ⚡ Intervalos dinámicos: 10seg (VOLUMEN), 15seg (FIBO)")
     print("   🎯 Umbral unificado: 75 para ALTA PRIORIDAD")
     print("   📊 Nueva escala: RUIDO<50, INTERESANTE 50-59, FUERTE 60-74, ALTA≥75\n")
+    
+    # Agregar heartbeat task para verificar conexión
+    async def heartbeat():
+        """Verifica periódicamente que la conexión esté activa"""
+        while True:
+            try:
+                await asyncio.sleep(60)  # Cada minuto
+                # Hacer una llamada simple para verificar conexión
+                await client.get_me()
+                print("💓 Heartbeat: Conexión activa")
+            except Exception as e:
+                print(f"⚠️ Heartbeat falló: {e}")
+                print("🔄 Forzando reconexión...")
+                try:
+                    await client.disconnect()
+                    await asyncio.sleep(2)
+                    await client.connect()
+                    print("✅ Reconectado exitosamente")
+                except Exception as reconnect_error:
+                    print(f"❌ Error en reconexión: {reconnect_error}")
+    
+    # Iniciar heartbeat
+    asyncio.create_task(heartbeat())
+    print("💓 Heartbeat activado (verifica conexión cada 60 segundos)\n")
     
     # Handler para nuevos mensajes
     @client.on(events.NewMessage(chats=SOURCE_IDS))
