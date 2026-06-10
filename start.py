@@ -3,26 +3,54 @@ Script de inicio que ejecuta el bot y el keep-alive server en paralelo
 """
 import asyncio
 import sys
-from keep_alive import start_server
+import os
+from aiohttp import web
 
-async def main():
-    """Ejecuta bot y servidor en paralelo"""
-    print("🚀 Iniciando Trading Bot con Keep-Alive...")
+async def health_check(request):
+    """Endpoint de health check"""
+    return web.json_response({'status': 'ok', 'bot': 'running'})
+
+async def root(request):
+    """Página principal"""
+    return web.Response(text='<h1>🤖 Trading Bot Monitor - Running</h1>', content_type='text/html')
+
+async def start_web_server():
+    """Inicia el servidor web INMEDIATAMENTE"""
+    port = int(os.environ.get('PORT', 10000))
     
-    # Iniciar servidor keep-alive PRIMERO (para que Render detecte el puerto)
-    print("🌐 Iniciando servidor web...")
-    server_task = asyncio.create_task(start_server())
+    app = web.Application()
+    app.router.add_get('/', root)
+    app.router.add_get('/health', health_check)
     
-    # Esperar un poco para que el servidor se levante
-    await asyncio.sleep(2)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
     
-    # Iniciar bot (importar aquí para evitar conflictos)
+    print(f"✅✅✅ SERVIDOR WEB ACTIVO EN PUERTO {port} ✅✅✅")
+    print(f"   Bind: 0.0.0.0:{port}")
+    
+    # Mantener servidor corriendo
+    while True:
+        await asyncio.sleep(3600)
+
+async def start_bot():
+    """Inicia el bot de Telegram"""
+    await asyncio.sleep(3)  # Esperar a que el servidor web esté listo
     print("📱 Iniciando monitor de Telegram...")
     import monitor_grupos
-    bot_task = asyncio.create_task(monitor_grupos.main())
+    await monitor_grupos.main()
+
+async def main():
+    """Ejecuta servidor web y bot en paralelo"""
+    print("🚀 Iniciando Trading Bot con Keep-Alive...")
     
-    # Esperar ambos
-    await asyncio.gather(server_task, bot_task)
+    # Crear ambas tareas
+    web_task = asyncio.create_task(start_web_server())
+    bot_task = asyncio.create_task(start_bot())
+    
+    # Esperar ambas
+    await asyncio.gather(web_task, bot_task)
 
 if __name__ == "__main__":
     try:
