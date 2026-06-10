@@ -539,17 +539,28 @@ async def main():
             import traceback
             traceback.print_exc()
     
-    # Mantener corriendo
-    print("💡 Presiona Ctrl+C para detener\n")
-    await client.run_until_disconnected()
+    # Mantener corriendo con reconexión automática
+    print("💡 Bot en ejecución continua (reconexión automática activa)\n")
+    
+    try:
+        await client.run_until_disconnected()
+    except Exception as e:
+        print(f"⚠️ Desconexión detectada: {e}")
+        print("🔄 Intentando reconectar...")
+        # El loop externo manejará la reconexión
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n\n👋 Monitor detenido por el usuario")
-    except Exception as e:
-        print(f"\n❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
+    while True:
+        try:
+            asyncio.run(main())
+        except KeyboardInterrupt:
+            print("\n\n👋 Monitor detenido por el usuario")
+            break
+        except Exception as e:
+            print(f"\n❌ Error crítico: {e}")
+            import traceback
+            traceback.print_exc()
+            print("\n🔄 Reiniciando en 10 segundos...")
+            import time
+            time.sleep(10)
