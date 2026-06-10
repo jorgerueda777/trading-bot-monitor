@@ -53,6 +53,8 @@ event_tracker = EventTracker()
 client = None
 # Diccionario para trackear mensajes enviados (event_id -> message_id)
 mensajes_tracking = {}
+# Timestamp del último mensaje recibido (para watchdog)
+last_message_time = datetime.now()
 
 
 def detectar_evento_en_mensaje(text: str) -> bool:
@@ -373,10 +375,33 @@ async def main():
     asyncio.create_task(heartbeat())
     print("💓 Heartbeat activado (verifica conexión cada 60 segundos)\n")
     
+    # Watchdog para detectar si dejamos de recibir mensajes
+    async def watchdog():
+        """Detecta si el handler dejó de recibir mensajes"""
+        global last_message_time
+        while True:
+            await asyncio.sleep(180)  # Cada 3 minutos
+            time_since_last = (datetime.now() - last_message_time).total_seconds()
+            if time_since_last > 600:  # 10 minutos sin mensajes
+                print(f"⚠️ WATCHDOG: Sin mensajes por {time_since_last/60:.1f} minutos")
+                print(f"🔄 Forzando verificación de conexión...")
+                try:
+                    me = await client.get_me()
+                    print(f"✅ Conexión OK - Usuario: {me.first_name}")
+                except Exception as e:
+                    print(f"❌ Conexión perdida: {e}")
+                    raise Exception("Conexión perdida - reiniciando")
+    
+    asyncio.create_task(watchdog())
+    print("🐕 Watchdog activado (detecta freeze cada 3 minutos)\n")
+    
     # Handler para nuevos mensajes
     @client.on(events.NewMessage(chats=SOURCE_IDS))
     async def handler(event):
         """Procesa mensajes de los grupos monitoreados"""
+        global last_message_time
+        last_message_time = datetime.now()
+        print(f"🔔 [HANDLER] Mensaje recibido - {datetime.now().strftime('%H:%M:%S')}")
         try:
             mensaje = event.message.message
             grupo_id = event.chat_id
