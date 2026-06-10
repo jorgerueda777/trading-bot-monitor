@@ -153,9 +153,19 @@ def formatear_resumen_telegram(classification, grupo_origen, status=EventStatus.
     # Info básica adicional
     mensaje += f"\n\n📊 {classification.origin}"
     
-    # Precio actual
+    # Precio de entrada
     if hasattr(classification, 'zone_a') and classification.zone_a > 0:
-        mensaje += f" | Entrada: ${classification.zone_a:.4f}"
+        mensaje += f"\n🎯 Entrada: ${classification.zone_a:.4f}"
+        # Segunda entrada si existe y es diferente
+        if hasattr(classification, 'zone_b') and classification.zone_b > 0 and classification.zone_b != classification.zone_a:
+            mensaje += f" | ${classification.zone_b:.4f}"
+    
+    # Targets (TPs)
+    if hasattr(classification, 'target_a') and classification.target_a > 0:
+        mensaje += f"\n🚀 TP1: ${classification.target_a:.4f}"
+        # Segundo TP si existe y es diferente
+        if hasattr(classification, 'target_b') and classification.target_b > 0 and classification.target_b != classification.target_a:
+            mensaje += f" | TP2: ${classification.target_b:.4f}"
     
     # Stop Loss
     if hasattr(classification, 'stop_loss') and classification.stop_loss > 0:
