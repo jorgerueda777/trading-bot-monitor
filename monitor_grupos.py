@@ -56,6 +56,19 @@ mensajes_tracking = {}
 # Timestamp del último mensaje recibido (para watchdog)
 last_message_time = datetime.now()
 
+# Callback para reportar estadísticas a start.py
+def update_bot_stats():
+    """Actualiza estadísticas del bot para el servidor HTTP"""
+    try:
+        # Importar stats desde start.py si está disponible
+        import __main__
+        if hasattr(__main__, 'stats'):
+            __main__.stats['bot_ready'] = True
+            __main__.stats['last_message_time'] = last_message_time
+            __main__.stats['message_count'] = __main__.stats.get('message_count', 0) + 1
+    except:
+        pass  # Silenciar si no está disponible
+
 
 def detectar_evento_en_mensaje(text: str) -> bool:
     """Detecta si un mensaje contiene un evento válido - FIBO o VOLUMEN"""
@@ -415,6 +428,7 @@ async def main():
         """Procesa mensajes de los grupos monitoreados"""
         global last_message_time
         last_message_time = datetime.now()
+        update_bot_stats()  # Actualizar estadísticas
         print(f"🔔 [HANDLER] Mensaje recibido - {datetime.now().strftime('%H:%M:%S')} - Chat ID: {event.chat_id}")
         try:
             mensaje = event.message.message
@@ -625,12 +639,50 @@ async def main():
     
     # Mantener corriendo con reconexión automática
     print("💡 Bot en ejecución continua (reconexión automática activa)\n")
+    print("🔧 FIX RENDER: Handler keepalive activo\n")
+    
+    # Task para mantener el event loop activo y verificar conexión
+    async def keepalive_loop():
+        """Mantiene el event loop activo y verifica la conexión"""
+        counter = 0
+        while True:
+            try:
+                counter += 1
+                await asyncio.sleep(30)  # Cada 30 segundos
+                
+                # Verificar que estamos conectados
+                me = await client.get_me()
+                
+                if counter % 2 == 0:  # Cada 60 segundos
+                    print(f"🔄 Keepalive: Conexión OK [{datetime.now().strftime('%H:%M:%S')}]")
+                
+                # Actualizar estadísticas
+                update_bot_stats()
+                
+            except Exception as e:
+                print(f"⚠️ Keepalive error: {e}")
+                print("🔄 Reintentando conexión...")
+                try:
+                    await client.disconnect()
+                    await asyncio.sleep(2)
+                    await client.connect()
+                    print("✅ Reconectado")
+                except Exception as reconnect_err:
+                    print(f"❌ Error reconectando: {reconnect_err}")
+                    raise  # Forzar restart completo
+    
+    # Iniciar keepalive
+    keepalive_task = asyncio.create_task(keepalive_loop())
     
     try:
-        await client.run_until_disconnected()
+        # En lugar de run_until_disconnected, usar un loop infinito
+        # Esto evita que el handler se "duerma"
+        while True:
+            await asyncio.sleep(1)
     except Exception as e:
         print(f"⚠️ Desconexión detectada: {e}")
         print("🔄 Intentando reconectar...")
+        keepalive_task.cancel()
         # El loop externo manejará la reconexión
 
 

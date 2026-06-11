@@ -18,11 +18,18 @@ class BinanceClient:
     """Cliente para consultar datos de Binance Futures"""
     
     BASE_URL = "https://fapi.binance.com"
+    REQUEST_TIMEOUT = 5  # Timeout de 5 segundos
+    MAX_RETRIES = 2  # Máximo 2 reintentos
     
     def __init__(self):
         self.session = requests.Session()
         self.api_key = os.getenv('BINANCE_API_KEY')
         self.api_secret = os.getenv('BINANCE_API_SECRET')
+        
+        # Circuit breaker simple
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.circuit_open = False
         
         # Configurar headers
         headers = {'Content-Type': 'application/json'}
@@ -31,6 +38,51 @@ class BinanceClient:
             print(f"✅ Binance API Key configurada")
         
         self.session.headers.update(headers)
+        
+        # Configurar retry adapter
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+        
+        retry_strategy = Retry(
+            total=self.MAX_RETRIES,
+            backoff_factor=0.5,
+            status_forcelist=[429, 500, 502, 503, 504]
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
+    
+    def _check_circuit_breaker(self):
+        """Verifica si el circuit breaker está abierto"""
+        if not self.circuit_open:
+            return True
+        
+        # Si han pasado 60 segundos, intentar cerrar el circuit breaker
+        if self.last_failure_time:
+            elapsed = time.time() - self.last_failure_time
+            if elapsed > 60:
+                print("🔄 Circuit breaker: Reintentando conexión...")
+                self.circuit_open = False
+                self.failure_count = 0
+                return True
+        
+        return False
+    
+    def _record_failure(self):
+        """Registra un fallo y abre el circuit breaker si hay muchos"""
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        
+        if self.failure_count >= 5:
+            self.circuit_open = True
+            print(f"⚠️ Circuit breaker ABIERTO: {self.failure_count} fallos consecutivos")
+    
+    def _record_success(self):
+        """Registra un éxito y resetea el contador"""
+        if self.failure_count > 0:
+            print(f"✅ Circuit breaker: Conexión restaurada")
+        self.failure_count = 0
+        self.circuit_open = False
     
     def _sign_request(self, params: dict) -> dict:
         """Firma una petición con la API secret"""
@@ -57,6 +109,11 @@ class BinanceClient:
         Returns:
             Diccionario con datos de mercado
         """
+        # Verificar circuit breaker
+        if not self._check_circuit_breaker():
+            print(f"⚠️ Circuit breaker abierto, usando datos de respaldo para {symbol}")
+            return self._get_fallback_data()
+        
         try:
             # Asegurar formato correcto
             if not symbol.endswith('USDT'):
@@ -64,7 +121,7 @@ class BinanceClient:
             
             symbol = symbol.upper()
             
-            # Obtener datos
+            # Obtener datos con timeout
             current_price = self._get_current_price(symbol)
             open_interest_data = self._get_open_interest(symbol)
             funding_data = self._get_funding_rate(symbol)
@@ -72,6 +129,9 @@ class BinanceClient:
             
             # Datos adicionales con API key (si está disponible)
             orderbook_data = self._get_orderbook_analysis(symbol) if self.api_key else None
+            
+            # Registrar éxito
+            self._record_success()
             
             return {
                 'current_price': current_price,
@@ -85,8 +145,13 @@ class BinanceClient:
                 'vwap': self._calculate_vwap(symbol, current_price)
             }
         
+        except requests.exceptions.Timeout:
+            print(f"⚠️ Timeout obteniendo datos de Binance para {symbol}")
+            self._record_failure()
+            return self._get_fallback_data()
         except Exception as e:
             print(f"⚠️ Error obteniendo datos de Binance para {symbol}: {e}")
+            self._record_failure()
             return self._get_fallback_data()
     
     def _get_current_price(self, symbol: str) -> float:
@@ -94,7 +159,7 @@ class BinanceClient:
         url = f"{self.BASE_URL}/fapi/v1/ticker/price"
         params = {'symbol': symbol}
         
-        response = self.session.get(url, params=params, timeout=5)
+        response = self.session.get(url, params=params, timeout=self.REQUEST_TIMEOUT)
         response.raise_for_status()
         
         data = response.json()
