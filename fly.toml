@@ -1,35 +1,28 @@
-# Configuración para Fly.io
-app = "trading-bot-monitor"
+# Configuración para Fly.io - Trading Bot Monitor
+app = "trading-bot-monitor-v2"
+primary_region = "iad"
 
 [build]
   dockerfile = "Dockerfile"
 
 [env]
+  PORT = "10000"
   PYTHONUNBUFFERED = "1"
 
-[[services]]
-  internal_port = 8000
-  protocol = "tcp"
+[http_service]
+  internal_port = 10000
+  force_https = false
+  auto_stop_machines = false
+  auto_start_machines = false
+  min_machines_running = 1
 
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"
+  method = "GET"
+  path = "/health"
 
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
-
-# Recursos para la VM gratuita
-[experimental]
-  auto_rollback = true
-
-[[mounts]]
+[mounts]
   source = "bot_data"
   destination = "/app/data"
-
-# Health check (opcional)
-[checks]
-  [checks.alive]
-    type = "tcp"
-    interval = "30s"
-    timeout = "10s"
